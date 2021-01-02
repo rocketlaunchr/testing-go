@@ -2,18 +2,14 @@ package testing
 
 import (
 	"errors"
-	// "github.com/davecgh/go-spew/spew"
-	"fmt"
 	"reflect"
 	"testing"
 )
 
 type TestConfig struct {
-	t *testing.T
-	C Comparator
-	// Fmt
-	// Fail
-	// string contains
+	t     *testing.T
+	C     Comparator
+	Fatal bool
 }
 
 func NewTestConfig(t *testing.T) *TestConfig {
@@ -29,28 +25,24 @@ func (tcfg TestConfig) Run1(name string, tc interface{}, f func(t *testing.T) in
 	})
 }
 
+func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) interface{}) {
+
+	tcfg.t.Run(name, func(t *testing.T) {
+		f(t)
+	})
+}
+
 func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (interface{}, error)) {
-
-	comparator := tcfg.C
-	if comparator == nil {
-		comparator = reflect.DeepEqual
-	}
-
-	var errChecker errComparator
-	errChecker = func(err, target error) bool { return reflect.DeepEqual(err, target) }
 
 	// Expected output value
 	expOut, found := structVal(tc, "ExpOut")
 	if !found {
 		panic("ExpOut field not found in test case")
 	}
-	var notVal bool
-	if x, ok := expOut.(NotEqual); ok {
-		// TODO: Make it recursive
-		notVal = true
-		expOut = x.Val
-		compCpy := comparator
-		comparator = func(x, y interface{}) bool { return !compCpy(x, y) }
+
+	if expOut == CustomTest {
+		tcfg.t.Run(name, func(t *testing.T) { f(t) })
+		return
 	}
 
 	// Expected Error
@@ -60,40 +52,62 @@ func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (i
 	}
 	expErr, _ := expErr_.(error)
 
+	if expErr == CustomTest {
+		tcfg.t.Run(name, func(t *testing.T) { f(t) })
+		return
+	}
+
+	comparator := tcfg.C
+	if comparator == nil {
+		comparator = reflect.DeepEqual
+	}
+
+	var errChecker errComparator
+	errChecker = deepEqual
+
+	var notVal bool
+	if x, ok := expOut.(NotEqual); ok {
+		// TODO: Make it recursive?
+		notVal = true
+		expOut = x.Val
+		compCpy := comparator
+		comparator = func(x, y interface{}) bool { return !compCpy(x, y) }
+	}
+
 	// Check for Is
 	if errors.Is(expErr, Is{}) {
-		errChecker = func(err, target error) bool { return errors.Is(err, target) }
+		// Bug: Assumes Is is immediate => recursively unwrap
+		expErr = expErr.(Is).Err
+		errChecker = func(err, target error) bool { return errors.Is(err, target) } // is
+	}
+
+	// Check for ErrAny
+	var any bool
+	if errors.Is(expErr, ErrAny) {
+		any = true
 	}
 
 	// Check for NotEqual
 	var notError bool
 	if errors.Is(expErr, NotEqual{}) {
-		notError = true
-		inner := expErr.(NotEqual).Val
-		if inner == nil {
+		if any {
 			expErr = nil
+			any = false
 		} else {
-			expErr = inner.(error)
-		}
-		errCheckerCpy := errChecker
-		errChecker = func(err, target error) bool { return !errCheckerCpy(err, target) }
-	}
-
-	var any bool
-	if errors.Is(expErr, ErrAny) {
-		// any = true
-		if notError {
-			fmt.Println("A----")
-			// panic("not ErrAny")
-			expErr = nil
-		} else {
-			fmt.Println("B----")
-			any = true
+			notError = true
+			// Bug: Assumes NotEqual is immediate => recursively unwrap
+			inner := expErr.(NotEqual).Val
+			if inner == nil {
+				expErr = nil
+			} else {
+				expErr = inner.(error)
+			}
+			errCheckerCpy := errChecker
+			errChecker = func(err, target error) bool { return !errCheckerCpy(err, target) }
 		}
 	}
 
 	tcfg.t.Run(name, func(t *testing.T) {
-
 		gotVal, gotErr := func(t *testing.T) (gotVal interface{}, gotErr error) {
 			defer func() {
 				if recover() != nil {
@@ -103,23 +117,24 @@ func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (i
 			return f(t)
 		}(t)
 
-		// Test myself
-		if expOut == CustomTest || expErr == CustomTest {
-			return
-		}
-
 		if any {
 			if !((expErr.(error) == nil && gotErr == nil) || (expErr.(error) != nil && gotErr != nil) && comparator(gotVal, expOut)) {
-				t.Errorf("got (%+#v, %s) ; want (%+#v, %s)", gotVal, fmtError(gotErr, false), expOut, fmtError(expErr, notError))
+				t.Logf("got (%s, %s) ; want (%s, %s)", fmtVal(gotVal, false), fmtError(gotErr, false), fmtVal(expOut, notVal), fmtError(expErr, notError))
+				if tcfg.Fatal {
+					t.FailNow()
+				} else {
+					t.Fail()
+				}
 			}
 			return
 		}
 
 		if !(errChecker(gotErr, expErr) && (gotErr == ErrPanic || comparator(gotVal, expOut))) {
-			if notVal {
-				t.Errorf("got (%+#v, %s) ; want (NOT %+#v, %s)", gotVal, fmtError(gotErr, false), expOut, fmtError(expErr, notError))
+			t.Logf("got (%s, %s) ; want (%s, %s)", fmtVal(gotVal, false), fmtError(gotErr, false), fmtVal(expOut, notVal), fmtError(expErr, notError))
+			if tcfg.Fatal {
+				t.FailNow()
 			} else {
-				t.Errorf("got (%+#v, %s) ; want (%+#v, %s)", gotVal, fmtError(gotErr, false), expOut, fmtError(expErr, notError))
+				t.Fail()
 			}
 		}
 	})

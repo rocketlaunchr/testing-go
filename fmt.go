@@ -23,5 +23,17 @@ func fmtError(err error, not bool) (rstr string) {
 	} else if err == ErrAny {
 		return "<any error>"
 	}
+
+	switch err := err.(type) {
+	case ErrContains:
+		return "<contains: \"" + err.Str + "\">"
+	}
 	return fmt.Sprintf("%+#v", err)
+}
+
+func fmtVal(val interface{}, not bool) string {
+	if not {
+		return fmt.Sprintf("NOT %+#v", val)
+	}
+	return fmt.Sprintf("%+#v", val)
 }

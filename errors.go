@@ -1,6 +1,11 @@
 package testing
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"strings"
+)
 
 var (
 	ErrPanic   = errors.New("panic expected")
@@ -32,3 +37,26 @@ func (e Is) Is(target error) bool {
 	_, ok := target.(Is)
 	return ok
 }
+
+type ErrContains struct {
+	Str string
+}
+
+func (e ErrContains) Error() string { return "error contains: " + e.Str }
+
+func (e ErrContains) Is(target error) bool {
+	s := spew.NewDefaultConfig()
+	s.DisableMethods = false
+	s.DisablePointerMethods = false
+
+	fmt.Printf("target: %s", s.Sdump(target))
+	fmt.Printf("e: %s", s.Sdump(e))
+	fmt.Println(target.Error(), e.Str)
+	fmt.Printf("return: %v\n", strings.Contains(target.Error(), e.Str))
+	fmt.Println("-----------")
+	return strings.Contains(target.Error(), e.Str)
+}
+
+// func Contains(s, substr string) bool
+
+// https://golang.org/src/errors/wrap.go?s=1170:1201#L29
