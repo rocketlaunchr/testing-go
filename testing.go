@@ -19,25 +19,31 @@ func NewTestConfig(t *testing.T) *TestConfig {
 }
 
 func (tcfg TestConfig) Run1(name string, tc interface{}, f func(t *testing.T) interface{}) {
-
-	tcfg.t.Run(name, func(t *testing.T) {
-		f(t)
-	})
+	tcfg.run2(name, tc, func(t *testing.T) (interface{}, error) {
+		out := f(t)
+		return out, nil
+	}, 1)
 }
 
-func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) interface{}) {
-
-	tcfg.t.Run(name, func(t *testing.T) {
-		f(t)
-	})
+func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) error) {
+	tcfg.run2(name, tc, func(t *testing.T) (interface{}, error) {
+		err := f(t)
+		return nil, err
+	}, 2)
 }
 
 func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (interface{}, error)) {
+	tcfg.run2(name, tc, f, 0)
+}
+
+func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (interface{}, error), mode int) {
 
 	// Expected output value
 	expOut, found := structVal(tc, "ExpOut")
 	if !found {
-		panic("ExpOut field not found in test case")
+		if mode != 2 {
+			panic("ExpOut field not found in test case")
+		}
 	}
 
 	if expOut == CustomTest {
@@ -48,13 +54,20 @@ func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (i
 	// Expected Error
 	expErr_, found := structVal(tc, "ExpErr")
 	if !found {
-		panic("ExpErr field not found in test case")
+		if mode != 1 {
+			panic("ExpErr field not found in test case")
+		}
 	}
 	expErr, _ := expErr_.(error)
 
 	if expErr == CustomTest {
 		tcfg.t.Run(name, func(t *testing.T) { f(t) })
 		return
+	}
+
+	if expOut == PanicExpected {
+		expOut = nil
+		expErr = PanicExpected
 	}
 
 	comparator := tcfg.C
@@ -111,7 +124,7 @@ func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (i
 		gotVal, gotErr := func(t *testing.T) (gotVal interface{}, gotErr error) {
 			defer func() {
 				if recover() != nil {
-					gotErr = ErrPanic
+					gotErr = PanicExpected
 				}
 			}()
 			return f(t)
@@ -129,7 +142,7 @@ func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (i
 			return
 		}
 
-		if !(errChecker(gotErr, expErr) && (gotErr == ErrPanic || comparator(gotVal, expOut))) {
+		if !(errChecker(gotErr, expErr) && (gotErr == PanicExpected || comparator(gotVal, expOut))) {
 			t.Logf("got (%s, %s) ; want (%s, %s)", fmtVal(gotVal, false), fmtError(gotErr, false), fmtVal(expOut, notVal), fmtError(expErr, notError))
 			if tcfg.Fatal {
 				t.FailNow()

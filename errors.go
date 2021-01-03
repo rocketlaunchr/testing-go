@@ -8,9 +8,9 @@ import (
 )
 
 var (
-	ErrPanic   = errors.New("panic expected")
-	ErrAny     = errors.New("any error expected")
-	CustomTest = errors.New("custom test")
+	PanicExpected = errors.New("panic expected")
+	ErrAny        = errors.New("any error expected")
+	CustomTest    = errors.New("custom test")
 )
 
 type NotEqual struct {

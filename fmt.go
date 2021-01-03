@@ -18,7 +18,7 @@ func fmtError(err error, not bool) (rstr string) {
 
 	if err == nil {
 		return "<nil>"
-	} else if err == ErrPanic {
+	} else if err == PanicExpected {
 		return "<panic>"
 	} else if err == ErrAny {
 		return "<any error>"
