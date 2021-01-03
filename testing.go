@@ -38,18 +38,13 @@ func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (i
 
 func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (interface{}, error), mode int) {
 
-	// Expected output value
-	expOut, found := structVal(tc, "ExpOut")
-	if !found {
-		if mode != 2 {
-			panic("ExpOut field not found in test case")
-		}
+	comparator := tcfg.C
+	if comparator == nil {
+		comparator = reflect.DeepEqual
 	}
 
-	if expOut == CustomTest {
-		tcfg.t.Run(name, func(t *testing.T) { f(t) })
-		return
-	}
+	var errChecker errComparator
+	errChecker = deepEqual
 
 	// Expected Error
 	expErr_, found := structVal(tc, "ExpErr")
@@ -65,18 +60,28 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 		return
 	}
 
-	if expOut == PanicExpected {
-		expOut = nil
+	// Expected output value
+	expOut, found := structVal(tc, "ExpOut")
+	if !found {
+		if mode != 2 {
+			panic("ExpOut field not found in test case")
+		}
+	}
+
+	//
+	// Expected Value
+	//
+	var neq = NotEqual{PanicExpected}
+	if expOut == CustomTest {
+		tcfg.t.Run(name, func(t *testing.T) { f(t) })
+		return
+	} else if expOut == neq {
+		// expErr = neq
+		// expOut = nil
+	} else if expOut == PanicExpected {
 		expErr = PanicExpected
+		expOut = nil
 	}
-
-	comparator := tcfg.C
-	if comparator == nil {
-		comparator = reflect.DeepEqual
-	}
-
-	var errChecker errComparator
-	errChecker = deepEqual
 
 	var notVal bool
 	if x, ok := expOut.(NotEqual); ok {
@@ -86,6 +91,10 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 		compCpy := comparator
 		comparator = func(x, y interface{}) bool { return !compCpy(x, y) }
 	}
+
+	//
+	// Expected Error
+	//
 
 	// Check for Is
 	if errors.Is(expErr, Is{}) {
@@ -132,7 +141,15 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 
 		if any {
 			if !((expErr.(error) == nil && gotErr == nil) || (expErr.(error) != nil && gotErr != nil) && comparator(gotVal, expOut)) {
-				t.Logf("got (%s, %s) ; want (%s, %s)", fmtVal(gotVal, false), fmtError(gotErr, false), fmtVal(expOut, notVal), fmtError(expErr, notError))
+				if mode == 0 {
+					t.Logf("got (%s, %s) ; want (%s, %s)", fmtVal(gotVal, false), fmtError(gotErr, false), fmtVal(expOut, notVal), fmtError(expErr, notError))
+				} else {
+					if expErr == PanicExpected || expErr == neq {
+						t.Logf("got %s ; want %s", fmtVal(gotVal, false), fmtError(expErr, notError))
+					} else {
+						t.Logf("got %s ; want %s", fmtVal(gotVal, false), fmtVal(expOut, notVal))
+					}
+				}
 				if tcfg.Fatal {
 					t.FailNow()
 				} else {
@@ -143,7 +160,15 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 		}
 
 		if !(errChecker(gotErr, expErr) && (gotErr == PanicExpected || comparator(gotVal, expOut))) {
-			t.Logf("got (%s, %s) ; want (%s, %s)", fmtVal(gotVal, false), fmtError(gotErr, false), fmtVal(expOut, notVal), fmtError(expErr, notError))
+			if mode == 0 {
+				t.Logf("got (%s, %s) ; want (%s, %s)", fmtVal(gotVal, false), fmtError(gotErr, false), fmtVal(expOut, notVal), fmtError(expErr, notError))
+			} else {
+				if expErr == PanicExpected || expErr == neq {
+					t.Logf("got %s ; want %s", fmtVal(gotVal, false), fmtError(expErr, notError))
+				} else {
+					t.Logf("got %s ; want %s", fmtVal(gotVal, false), fmtVal(expOut, notVal))
+				}
+			}
 			if tcfg.Fatal {
 				t.FailNow()
 			} else {
