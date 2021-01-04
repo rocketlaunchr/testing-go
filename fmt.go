@@ -15,8 +15,8 @@ func Sprintf(format string, a ...interface{}) string { return fmt.Sprintf(format
 // See: https://pkg.go.dev/fmt#Errorf
 func Errorf(format string, a ...interface{}) error { return fmt.Errorf(format, a...) }
 
-// S converts an int to a string.
-func S(i int) string {
+// Str converts an int to a string.
+func Str(i int) string {
 	return strconv.Itoa(i)
 }
 
