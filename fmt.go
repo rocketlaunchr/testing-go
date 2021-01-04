@@ -1,6 +1,9 @@
 package testing
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 // Sprintf convenience function.
 //
@@ -11,6 +14,11 @@ func Sprintf(format string, a ...interface{}) string { return fmt.Sprintf(format
 //
 // See: https://pkg.go.dev/fmt#Errorf
 func Errorf(format string, a ...interface{}) error { return fmt.Errorf(format, a...) }
+
+// S converts an int to a string.
+func S(i int) string {
+	return strconv.Itoa(i)
+}
 
 func fmtError(err error, not bool) (rstr string) {
 	defer func() {
