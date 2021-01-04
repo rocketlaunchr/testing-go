@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"errors"
 	"reflect"
 	"testing"
 )
@@ -71,6 +70,7 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 	//
 	// Expected Value
 	//
+
 	var neq = NotEqual{PanicExpected}
 	if expOut == CustomTest {
 		tcfg.t.Run(name, func(t *testing.T) { f(t) })
@@ -85,7 +85,6 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 
 	var notVal bool
 	if x, ok := expOut.(NotEqual); ok {
-		// TODO: Make it recursive?
 		notVal = true
 		expOut = x.Val
 		compCpy := comparator
@@ -96,37 +95,62 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 	// Expected Error
 	//
 
-	// Check for Is
-	if errors.Is(expErr, Is{}) {
-		// Bug: Assumes Is is immediate => recursively unwrap
-		expErr = expErr.(Is).Err
-		errChecker = func(err, target error) bool { return errors.Is(err, target) } // is
-	}
+	var (
+		notError bool
+		any      bool
+	)
 
-	// Check for ErrAny
-	var any bool
-	if errors.Is(expErr, ErrAny) {
-		any = true
-	}
-
-	// Check for NotEqual
-	var notError bool
-	if errors.Is(expErr, NotEqual{}) {
-		if any {
-			expErr = nil
-			any = false
-		} else {
-			notError = true
-			// Bug: Assumes NotEqual is immediate => recursively unwrap
-			inner := expErr.(NotEqual).Val
-			if inner == nil {
-				expErr = nil
-			} else {
-				expErr = inner.(error)
+	if expErr != nil {
+		err := expErr
+	FOR:
+		for {
+			// Do we recognise this error as an internal type?
+			switch x := err.(type) {
+			case NotEqual:
+				notError = !notError
+				errCheckerCpy := errChecker
+				errChecker = func(err, target error) bool { return !errCheckerCpy(err, target) }
+				if x.Val == nil || x.Val.(error) == nil {
+					err = nil
+					break FOR
+				} else {
+					err = x.Val.(error)
+					continue FOR
+				}
+			case Is:
+				errChecker = is
+				if x.Err == nil {
+					err = nil
+					break FOR
+				} else {
+					err = x.Err
+					continue FOR
+				}
+			case ErrContains:
+				err = x
+				break FOR
+			default:
+				switch err {
+				case PanicExpected:
+					break FOR
+				case ErrAny:
+					// ErrAny & NotEqual together is equivalent to checking for nil
+					if notError {
+						notError = !notError
+						errCheckerCpy := errChecker
+						errChecker = func(err, target error) bool { return !errCheckerCpy(err, target) }
+						err = nil
+					} else {
+						any = true
+					}
+					break FOR
+				default:
+					err = x
+					break FOR
+				}
 			}
-			errCheckerCpy := errChecker
-			errChecker = func(err, target error) bool { return !errCheckerCpy(err, target) }
 		}
+		expErr = err
 	}
 
 	tcfg.t.Run(name, func(t *testing.T) {

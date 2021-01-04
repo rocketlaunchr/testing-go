@@ -27,28 +27,23 @@ func TestRet1(t *testing.T) {
 
 	tcfg := NewTestConfig(t)
 
-	for _, tc := range testCases {
-		tcfg.Run1(Sprintf("input: %v", tc.in), tc, func(t *testing.T) interface{} {
+	for idx, tc := range testCases {
+		tcfg.Run1(Sprintf("[%d]: %v", idx, tc.in), tc, func(t *testing.T) interface{} {
 			return ret1Val(tc.in)
 		})
 	}
 }
 
-var errSample1 = errors.New("sample error 1")
-var errSample2 = errors.New("sample error 2")
+var (
+	errSample1 = errors.New("sample error 1")
+	errSample2 = errors.New("sample error 2")
+)
 
 func retErr(Panic bool) error {
 	if Panic {
 		panic("panic")
 	}
 	return errSample1
-}
-
-func retErrNil(Panic bool) error {
-	if Panic {
-		panic("panic")
-	}
-	return nil
 }
 
 func TestRetErr(t *testing.T) {
@@ -63,6 +58,16 @@ func TestRetErr(t *testing.T) {
 		{false, NotEqual{errSample2}},
 		{false, ErrContains{"1"}},
 		{false, NotEqual{ErrContains{"2"}}},
+		{false, NotEqual{nil}},
+
+		{true, Is{PanicExpected}},
+		{false, Is{NotEqual{PanicExpected}}},
+		{false, Is{errSample1}},
+		{false, Is{ErrAny}},
+		{false, Is{NotEqual{errSample2}}},
+		{false, Is{ErrContains{"1"}}},
+		{false, Is{NotEqual{ErrContains{"2"}}}},
+		{false, Is{NotEqual{nil}}},
 	}
 
 	tcfg := NewTestConfig(t)
@@ -74,17 +79,32 @@ func TestRetErr(t *testing.T) {
 	}
 }
 
-func TestRetErrNill(t *testing.T) {
+func retErrNil(Panic bool) error {
+	if Panic {
+		panic("panic")
+	}
+	return nil
+}
+
+func TestRetErrNil(t *testing.T) {
 	testCases := []struct {
 		in     bool
 		ExpErr error
 	}{
 		{true, PanicExpected},
 		{false, nil},
+		{false, NotEqual{NotEqual{nil}}},
 		{false, NotEqual{PanicExpected}},
 		{false, NotEqual{ErrAny}},
 		{false, NotEqual{errSample1}},
 		{false, NotEqual{ErrContains{"2"}}},
+
+		{true, Is{PanicExpected}},
+		{false, Is{nil}},
+		{false, Is{NotEqual{PanicExpected}}},
+		{false, Is{NotEqual{ErrAny}}},
+		{false, Is{NotEqual{errSample1}}},
+		{false, Is{NotEqual{ErrContains{"2"}}}},
 	}
 
 	tcfg := NewTestConfig(t)
