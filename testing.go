@@ -5,18 +5,25 @@ import (
 	"testing"
 )
 
+// TestConfig ...
+//
+// See ret1_test.go file for usage example.
 type TestConfig struct {
 	t     *testing.T
 	C     Comparator
 	Fatal bool
 }
 
+// NewTestConfig creates a new TestConfig.
 func NewTestConfig(t *testing.T) *TestConfig {
 	return &TestConfig{
 		t: t,
 	}
 }
 
+// Run1 is used when testing a function that returns a single (non-error) value.
+//
+// See ret1_test.go file for usage example.
 func (tcfg TestConfig) Run1(name string, tc interface{}, f func(t *testing.T) interface{}) {
 	tcfg.run2(name, tc, func(t *testing.T) (interface{}, error) {
 		out := f(t)
@@ -24,6 +31,9 @@ func (tcfg TestConfig) Run1(name string, tc interface{}, f func(t *testing.T) in
 	}, 1)
 }
 
+// RunErr is used when testing a function that returns a single error value.
+//
+// See ret1_test.go file.
 func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) error) {
 	tcfg.run2(name, tc, func(t *testing.T) (interface{}, error) {
 		err := f(t)
@@ -31,6 +41,9 @@ func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) 
 	}, 2)
 }
 
+// RunErr is used when testing a function that returns a value and an error.
+//
+// See ret2_test.go file for usage example.
 func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (interface{}, error)) {
 	tcfg.run2(name, tc, f, 0)
 }

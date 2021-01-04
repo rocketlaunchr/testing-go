@@ -2,8 +2,15 @@ package testing
 
 import "fmt"
 
+// Sprintf convenience function.
+//
+// See: https://pkg.go.dev/fmt#Sprintf
 func Sprintf(format string, a ...interface{}) string { return fmt.Sprintf(format, a...) }
-func Errorf(format string, a ...interface{}) error   { return fmt.Errorf(format, a...) }
+
+// Errorf convenience function.
+//
+// See: https://pkg.go.dev/fmt#Errorf
+func Errorf(format string, a ...interface{}) error { return fmt.Errorf(format, a...) }
 
 func fmtError(err error, not bool) (rstr string) {
 	defer func() {
