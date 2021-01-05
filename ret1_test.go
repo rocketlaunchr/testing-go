@@ -20,9 +20,9 @@ func TestRet1(t *testing.T) {
 		ExpOut interface{}
 	}{
 		{true, PanicExpected},
-		{false, NotEqual{PanicExpected}},
+		{false, Not{PanicExpected}},
 		{false, "abc"},
-		{false, NotEqual{"abcd"}},
+		{false, Not{"abcd"}},
 	}
 
 	tcfg := NewTestConfig(t)
@@ -52,22 +52,22 @@ func TestRetErr(t *testing.T) {
 		ExpErr error
 	}{
 		{true, PanicExpected},
-		{false, NotEqual{PanicExpected}},
+		{false, Not{PanicExpected}},
 		{false, errSample1},
 		{false, ErrAny},
-		{false, NotEqual{errSample2}},
+		{false, Not{errSample2}},
 		{false, ErrContains{"1"}},
-		{false, NotEqual{ErrContains{"2"}}},
-		{false, NotEqual{nil}},
+		{false, Not{ErrContains{"2"}}},
+		{false, Not{nil}},
 
 		{true, Is{PanicExpected}},
-		{false, Is{NotEqual{PanicExpected}}},
+		{false, Is{Not{PanicExpected}}},
 		{false, Is{errSample1}},
 		{false, Is{ErrAny}},
-		{false, Is{NotEqual{errSample2}}},
+		{false, Is{Not{errSample2}}},
 		{false, Is{ErrContains{"1"}}},
-		{false, Is{NotEqual{ErrContains{"2"}}}},
-		{false, Is{NotEqual{nil}}},
+		{false, Is{Not{ErrContains{"2"}}}},
+		{false, Is{Not{nil}}},
 	}
 
 	tcfg := NewTestConfig(t)
@@ -93,18 +93,18 @@ func TestRetErrNil(t *testing.T) {
 	}{
 		{true, PanicExpected},
 		{false, nil},
-		{false, NotEqual{NotEqual{nil}}},
-		{false, NotEqual{PanicExpected}},
-		{false, NotEqual{ErrAny}},
-		{false, NotEqual{errSample1}},
-		{false, NotEqual{ErrContains{"2"}}},
+		{false, Not{Not{nil}}},
+		{false, Not{PanicExpected}},
+		{false, Not{ErrAny}},
+		{false, Not{errSample1}},
+		{false, Not{ErrContains{"2"}}},
 
 		{true, Is{PanicExpected}},
 		{false, Is{nil}},
-		{false, Is{NotEqual{PanicExpected}}},
-		{false, Is{NotEqual{ErrAny}}},
-		{false, Is{NotEqual{errSample1}}},
-		{false, Is{NotEqual{ErrContains{"2"}}}},
+		{false, Is{Not{PanicExpected}}},
+		{false, Is{Not{ErrAny}}},
+		{false, Is{Not{errSample1}}},
+		{false, Is{Not{ErrContains{"2"}}}},
 	}
 
 	tcfg := NewTestConfig(t)

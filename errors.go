@@ -17,7 +17,7 @@ var (
 	CustomTest = errors.New("custom test")
 )
 
-// NotEqual means the expected value/error is expected to be not equal.
+// Not means the expected value/error is expected to be not equal.
 //
 // Example:
 //
@@ -25,22 +25,22 @@ var (
 //      in     bool
 //      ExpErr error
 //  }{
-//      {false, NotEqual{ErrContains{"database error"}}},
+//      {false, Not{ErrContains{"database error"}}},
 //  }
-type NotEqual struct{ Val interface{} }
+type Not struct{ Val interface{} }
 
 // Error ...
-func (NotEqual) Error() string { return "not equal" }
+func (Not) Error() string { return "not equal" }
 
 // Unwrap ...
-func (e NotEqual) Unwrap() error {
+func (e Not) Unwrap() error {
 	x, _ := e.Val.(error)
 	return x
 }
 
 // Is ...
-func (e NotEqual) Is(target error) bool {
-	_, ok := target.(NotEqual)
+func (e Not) Is(target error) bool {
+	_, ok := target.(Not)
 	return ok
 }
 

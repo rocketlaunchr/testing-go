@@ -29,12 +29,12 @@ func TestRet2(t *testing.T) {
 		ExpErr      error
 	}{
 		// Test panic
-		{true, 0, NotEqual{"abcd"}, PanicExpected},
-		{false, 0, 0.0, NotEqual{PanicExpected}},
-		{false, 0, NotEqual{1.0}, NotEqual{PanicExpected}},
+		{true, 0, Not{"abcd"}, PanicExpected},
+		{false, 0, 0.0, Not{PanicExpected}},
+		{false, 0, Not{1.0}, Not{PanicExpected}},
 
-		{false, -1, NotEqual{"abcd"}, errInvalidInput},
-		{false, 9, 3.0, NotEqual{errInvalidInput}},
+		{false, -1, Not{"abcd"}, errInvalidInput},
+		{false, 9, 3.0, Not{errInvalidInput}},
 	}
 
 	tcfg := NewTestConfig(t)

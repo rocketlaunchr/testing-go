@@ -84,7 +84,7 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 	// Expected Value
 	//
 
-	var neq = NotEqual{PanicExpected}
+	var neq = Not{PanicExpected}
 	if expOut == CustomTest {
 		tcfg.t.Run(name, func(t *testing.T) { f(t) })
 		return
@@ -97,7 +97,7 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 	}
 
 	var notVal bool
-	if x, ok := expOut.(NotEqual); ok {
+	if x, ok := expOut.(Not); ok {
 		notVal = true
 		expOut = x.Val
 		compCpy := comparator
@@ -119,7 +119,7 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 		for {
 			// Do we recognise this error as an internal type?
 			switch x := err.(type) {
-			case NotEqual:
+			case Not:
 				notError = !notError
 				errCheckerCpy := errChecker
 				errChecker = func(err, target error) bool { return !errCheckerCpy(err, target) }
@@ -147,7 +147,7 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 				case PanicExpected:
 					break FOR
 				case ErrAny:
-					// ErrAny & NotEqual together is equivalent to checking for nil
+					// ErrAny & Not together is equivalent to checking for nil
 					if notError {
 						notError = !notError
 						errCheckerCpy := errChecker
