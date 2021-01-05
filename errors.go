@@ -19,8 +19,14 @@ var (
 
 // NotEqual means the expected value/error is expected to be not equal.
 //
-// Example
-//  NotEqual{"abc"}
+// Example:
+//
+//  testCases := []struct {
+//  	in     bool
+//  	ExpErr error
+//  }{
+//  	{false, NotEqual{ErrContains{"database error"}}},
+//  }
 type NotEqual struct{ Val interface{} }
 
 // Error ...
