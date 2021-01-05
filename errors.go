@@ -63,7 +63,7 @@ func (e Is) Is(target error) bool {
 }
 
 // ErrContains is used to check if the observed error contains a particular substring.
-// It uses strings.Contain.
+// It uses strings.Contains().
 //
 // Example:
 //
@@ -73,12 +73,12 @@ func (e Is) Is(target error) bool {
 //  }{
 //      {false, ErrContains{"database error"}},
 //  }
-type ErrContains struct{ Str string }
+type ErrContains struct{ Substr string }
 
 // Error ...
-func (e ErrContains) Error() string { return "error contains: " + e.Str }
+func (e ErrContains) Error() string { return "error contains: " + e.Substr }
 
 // Is ...
 func (e ErrContains) Is(target error) bool {
-	return strings.Contains(target.Error(), e.Str)
+	return strings.Contains(target.Error(), e.Substr)
 }
