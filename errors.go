@@ -22,10 +22,10 @@ var (
 // Example:
 //
 //  testCases := []struct {
-//  	in     bool
-//  	ExpErr error
+//      in     bool
+//      ExpErr error
 //  }{
-//  	{false, NotEqual{ErrContains{"database error"}}},
+//      {false, NotEqual{ErrContains{"database error"}}},
 //  }
 type NotEqual struct{ Val interface{} }
 
@@ -68,10 +68,10 @@ func (e Is) Is(target error) bool {
 // Example:
 //
 //  testCases := []struct {
-//  	in     bool
-//  	ExpErr error
+//    in     bool
+//    ExpErr error
 //  }{
-//  	{false, ErrContains{"database error"}},
+//    {false, ErrContains{"database error"}},
 //  }
 type ErrContains struct{ Str string }
 
