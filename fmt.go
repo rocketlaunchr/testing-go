@@ -41,7 +41,7 @@ func fmtError(err error, not bool) (rstr string) {
 
 	switch err := err.(type) {
 	case ErrContains:
-		return "<contains: \"" + err.Str + "\">"
+		return "<contains: \"" + err.Substr + "\">"
 	}
 	return fmt.Sprintf("%+#v", err)
 }

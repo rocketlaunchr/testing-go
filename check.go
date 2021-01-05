@@ -20,7 +20,7 @@ func deepEqual(err, target error) bool {
 		if err == nil {
 			return false
 		}
-		return strings.Contains(err.Error(), target.Str)
+		return strings.Contains(err.Error(), target.Substr)
 	}
 	return reflect.DeepEqual(err, target)
 }
@@ -31,7 +31,7 @@ func is(err, target error) bool {
 		if err == nil {
 			return false
 		}
-		return strings.Contains(err.Error(), target.Str)
+		return strings.Contains(err.Error(), target.Substr)
 	}
 	return errors.Is(err, target)
 }
