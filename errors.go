@@ -68,10 +68,10 @@ func (e Is) Is(target error) bool {
 // Example:
 //
 //  testCases := []struct {
-//    in     bool
-//    ExpErr error
+//      in     bool
+//      ExpErr error
 //  }{
-//    {false, ErrContains{"database error"}},
+//      {false, ErrContains{"database error"}},
 //  }
 type ErrContains struct{ Str string }
 
