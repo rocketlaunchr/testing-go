@@ -41,7 +41,7 @@ func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) 
 	}, 2)
 }
 
-// RunErr is used when testing a function that returns a value and an error.
+// Run2 is used when testing a function that returns a value and an error.
 //
 // See ret2_test.go file for usage example.
 func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (interface{}, error)) {
@@ -59,13 +59,13 @@ func (tcfg TestConfig) run2(name string, tc interface{}, f func(t *testing.T) (i
 	errChecker = deepEqual
 
 	// Expected Error
-	expErr_, found := structVal(tc, "ExpErr")
+	_expErr, found := structVal(tc, "ExpErr")
 	if !found {
 		if mode != 1 {
 			panic("ExpErr field not found in test case")
 		}
 	}
-	expErr, _ := expErr_.(error)
+	expErr, _ := _expErr.(error)
 
 	if expErr == CustomTest {
 		tcfg.t.Run(name, func(t *testing.T) { f(t) })
