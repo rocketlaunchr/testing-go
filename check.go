@@ -6,8 +6,10 @@ import (
 	"strings"
 )
 
-// Comparator returns true if x and y are equal (as determined by the function).
-// x and y are the returned value and expected value from a function being tested.
+// Comparator returns true if x and y are equal (as determined by the Comparator function).
+// x and y are the returned and expected value respectively from a function being tested.
+// The default Comparator uses reflect.DeepEqual. However the github.com/google/go-cmp
+// may also be used: See: https://github.com/google/go-cmp.
 type Comparator func(x, y interface{}) bool
 
 type errComparator func(err, target error) bool
