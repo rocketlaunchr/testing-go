@@ -9,7 +9,7 @@ var (
 	// PanicExpected indicates that the function being tested is expected to panic.
 	PanicExpected = errors.New("panic expected")
 
-	// ErrAny indicates that the function being tested is expected to return an error.
+	// ErrAny indicates that the function being tested is expected to return an (unspecified) error.
 	ErrAny = errors.New("any error expected")
 
 	// CustomTest indicates that you want to perform your own test inside the Run1, RunErr or Run2 function.
