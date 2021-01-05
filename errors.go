@@ -13,11 +13,14 @@ var (
 	ErrAny = errors.New("any error expected")
 
 	// CustomTest indicates that you want to perform your own test inside the Run1, RunErr or Run2 function.
-	// You will be expected to signify when a test failed i.e. t.Errorf(...).
+	// You will be expected to signify when a test failed yourself i.e. using t.Errorf(...).
 	CustomTest = errors.New("custom test")
 )
 
-// NotEqual ...
+// NotEqual means the expected value/error is expected to be not equal.
+//
+// Example
+//  NotEqual{"abc"}
 type NotEqual struct{ Val interface{} }
 
 // Error ...
@@ -58,12 +61,12 @@ func (e Is) Is(target error) bool {
 //
 // Example:
 //
-// testCases := []struct {
-// 	in     bool
-// 	ExpErr error
-// }{
-// 	{false, ErrContains{"database error"}},
-// }
+//  testCases := []struct {
+//  	in     bool
+//  	ExpErr error
+//  }{
+//  	{false, ErrContains{"database error"}},
+//  }
 type ErrContains struct{ Str string }
 
 // Error ...
