@@ -8,11 +8,6 @@
 <img src="https://github.com/rocketlaunchr/testing-go/raw/master/assets/logo.png" alt="testing-go" />
 </p>
 
-
-
-# A testing framework for Go unit testing.
-
-
 # Features
 
 1. Supports testing functions that return 1 or 2 values
