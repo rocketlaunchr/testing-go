@@ -29,16 +29,11 @@ var (
 //  }
 type Not struct{ Val interface{} }
 
-// Error ...
 func (Not) Error() string { return "not equal" }
-
-// Unwrap ...
 func (e Not) Unwrap() error {
 	x, _ := e.Val.(error)
 	return x
 }
-
-// Is ...
 func (e Not) Is(target error) bool {
 	_, ok := target.(Not)
 	return ok
@@ -50,13 +45,8 @@ func (e Not) Is(target error) bool {
 // See: https://pkg.go.dev/errors#Is
 type Is struct{ Err error }
 
-// Error ...
-func (Is) Error() string { return "is" }
-
-// Unwrap ...
+func (Is) Error() string   { return "is" }
 func (e Is) Unwrap() error { return e.Err }
-
-// Is ...
 func (e Is) Is(target error) bool {
 	_, ok := target.(Is)
 	return ok
@@ -75,10 +65,7 @@ func (e Is) Is(target error) bool {
 //  }
 type ErrContains struct{ Substr string }
 
-// Error ...
 func (e ErrContains) Error() string { return "error contains: " + e.Substr }
-
-// Is ...
 func (e ErrContains) Is(target error) bool {
 	return strings.Contains(target.Error(), e.Substr)
 }

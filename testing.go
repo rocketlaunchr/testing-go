@@ -9,8 +9,16 @@ import (
 //
 // See ret1_test.go file for usage example.
 type TestConfig struct {
-	t     *testing.T
-	C     Comparator
+	t *testing.T
+
+	// C sets the function used to check if the observed return value (non error) matches
+	// the expected return value. By default, reflect.DeepEqual is used. However, the github.com/google/go-cmp
+	// package  may also be used. See: https://github.com/google/go-cmp.
+	C Comparator
+
+	// Fatal marks the test as having failed and stops its execution.
+	//
+	// See: https://golang.org/pkg/testing/#T.FailNow
 	Fatal bool
 }
 
@@ -21,9 +29,14 @@ func NewTestConfig(t *testing.T) *TestConfig {
 	}
 }
 
-// Run1 is used when testing a function that returns a single (non-error) value.
+// Run1 is used when testing a function that returns a single (non-error) value. tc is a struct that is
+// expected to have a field named: ExpOut. It can be of the relevant type, but if you want to test
+// for panics, then it must be interface{} so you can use PanicExpected (which is an error type).
 //
 // See ret1_test.go file for usage example.
+//
+// NOTE: Be wary of how Go interprets in-place constants. If you are expecting a float64, then don't type
+// 1. Instead type 1.0. See: https://blog.golang.org/constants.
 func (tcfg TestConfig) Run1(name string, tc interface{}, f func(t *testing.T) interface{}) {
 	tcfg.run2(name, tc, func(t *testing.T) (interface{}, error) {
 		out := f(t)
@@ -31,9 +44,10 @@ func (tcfg TestConfig) Run1(name string, tc interface{}, f func(t *testing.T) in
 	}, 1)
 }
 
-// RunErr is used when testing a function that returns a single error value.
+// RunErr is used when testing a function that returns a single error value. tc is a struct that is
+// expected to have a field named: ExpErr of type error.
 //
-// See ret1_test.go file.
+// See ret1_test.go file for usage example.
 func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) error) {
 	tcfg.run2(name, tc, func(t *testing.T) (interface{}, error) {
 		err := f(t)
@@ -41,9 +55,15 @@ func (tcfg TestConfig) RunErr(name string, tc interface{}, f func(t *testing.T) 
 	}, 2)
 }
 
-// Run2 is used when testing a function that returns a value and an error.
+// Run2 is used when testing a function that returns a value and an error. tc is a struct that is
+// expected to have 2 fields named: ExpOut and ExpErr (of type error). ExpOut can be of the relevant
+// type, but if you want to test for panics, then it must be interface{} so you can use
+// PanicExpected (which is an error type).
 //
 // See ret2_test.go file for usage example.
+//
+// NOTE: Be wary of how Go interprets in-place constants. If you are expecting a float64, then don't type
+// 1. Instead type 1.0. See: https://blog.golang.org/constants.
 func (tcfg TestConfig) Run2(name string, tc interface{}, f func(t *testing.T) (interface{}, error)) {
 	tcfg.run2(name, tc, f, 0)
 }
